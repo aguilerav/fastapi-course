@@ -39,3 +39,13 @@ class UserOut(BaseModel):
         """Pydantic configuration to allow ORM mode."""
 
         from_attributes = True
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+    class Config:
+        """Pydantic configuration to allow ORM mode."""
+
+        from_attributes = True
