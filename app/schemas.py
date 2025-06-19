@@ -49,3 +49,17 @@ class UserLogin(BaseModel):
         """Pydantic configuration to allow ORM mode."""
 
         from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    id: str | None = None
+
+    class Config:
+        """Pydantic configuration to allow ORM mode."""
+
+        from_attributes = True
