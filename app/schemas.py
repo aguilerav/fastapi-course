@@ -57,7 +57,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    id: str | None = None
+    id: int | None = None
 
     class Config:
         """Pydantic configuration to allow ORM mode."""
