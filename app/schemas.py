@@ -17,6 +17,7 @@ class Post(PostBase):
 
     id: int
     created_at: datetime
+    owner_id: int
 
     class Config:
         """Pydantic configuration to allow ORM mode."""
