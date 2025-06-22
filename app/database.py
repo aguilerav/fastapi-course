@@ -1,29 +1,10 @@
-import os
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from .config import settings
 
-load_dotenv()
-
-if os.getenv("DB_type") == "supabase":
-    # Fetch variables
-    DB_USER = os.getenv("SB_USER")
-    DB_PASSWORD = os.getenv("SB_PASSWORD")
-    DB_HOST = os.getenv("SB_HOST")
-    DB_PORT = os.getenv("SB_PORT")
-    DB_NAME = os.getenv("SB_NAME")
-
-    # Construct the SQLAlchemy connection string
-    DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
-else:
-    # DB configuration
-    DB_HOST = os.getenv("DB_HOST")
-    DB_PORT = os.getenv("DB_PORT")
-    DB_USER = os.getenv("DB_USER")
-    DB_PASSWORD = os.getenv("DB_PASSWORD")
-    DB_NAME = os.getenv("DB_NAME")
-    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Construct the SQLAlchemy connection string
+DATABASE_URL = f"postgresql+psycopg2://{settings.db_user}:{settings.db_password}@{settings.db_host}:{settings.db_port}/{settings.db_name}?sslmode=require"
 
 # Engine
 engine = create_engine(DATABASE_URL)
