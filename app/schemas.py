@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from typing import Literal
 from datetime import datetime
 
 
@@ -53,6 +54,16 @@ class Post(PostBase):
         from_attributes = True
 
 
+class PostOut(BaseModel):
+    Post: Post
+    votes: int
+
+    class Config:
+        """Pydantic configuration to allow ORM mode."""
+
+        from_attributes = True
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -65,3 +76,8 @@ class TokenData(BaseModel):
         """Pydantic configuration to allow ORM mode."""
 
         from_attributes = True
+
+
+class Vote(BaseModel):
+    post_id: int
+    dir: Literal[0, 1]

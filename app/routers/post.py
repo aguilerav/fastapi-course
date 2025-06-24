@@ -1,5 +1,7 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter
+from typing import Dict, Any
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 
 from .. import models, schemas, oauth2
@@ -11,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[schemas.Post])
+@router.get("/", response_model=List[schemas.PostOut])
 def get_posts(
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
@@ -19,14 +21,34 @@ def get_posts(
     skip: int = 0,
     search: str | None = "",
 ):
+    # posts = (
+    #    db.query(models.Posts)
+    #    .filter(models.Posts.title.contains(search))
+    #    .limit(limit)
+    #    .offset(skip)
+    #    .all()
+    # )
     posts = (
-        db.query(models.Posts)
+        db.query(models.Posts, func.count(models.Vote.post_id).label("votes"))
+        .join(models.Vote, models.Vote.post_id == models.Posts.id, isouter=True)
+        .group_by(models.Posts.id)
         .filter(models.Posts.title.contains(search))
         .limit(limit)
         .offset(skip)
         .all()
     )
-    return posts
+    # Formatting the posts with their vote counts
+    if not posts:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No posts found",
+        )
+    else:
+        formatted_posts: List[Dict[str, Any]] = [
+            {"Post": post, "votes": votes} for post, votes in posts
+        ]
+
+    return formatted_posts
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
@@ -42,20 +64,30 @@ def create_posts(
     return new_post
 
 
-@router.get("/{id}", response_model=schemas.Post)
+@router.get("/{id}", response_model=schemas.PostOut)
 def get_post(
     id: int,
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user),
 ):
-    post = db.query(models.Posts).filter(models.Posts.id == id).first()
+    post_result = (
+        db.query(models.Posts, func.count(models.Vote.post_id).label("votes"))
+        .join(models.Vote, models.Vote.post_id == models.Posts.id, isouter=True)
+        .group_by(models.Posts.id)
+        .filter(models.Posts.id == id)
+        .first()
+    )
 
-    if not post:
+    if not post_result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id {id} not found",
         )
-    return post
+
+    post, votes = post_result
+    formatted_post = {"Post": post, "votes": votes}
+
+    return formatted_post
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
